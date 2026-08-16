@@ -1,0 +1,35 @@
+# Raw / large inputs (not shipped)
+datagen/in/mmah/
+datagen/in/fonts/
+datagen/in/ccd/
+
+# Lab working trees & generated outputs
+unit-color/out/
+unit-color/**/__pycache__/
+unit-color/.venv/
+datagen/**/__pycache__/
+datagen/**/.venv/
+data/
+.venv/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Local private full packs (CLI may read these; never commit)
+/data-private/
+
+# Learning course (local coach material — not portfolio)
+/docs/course/
+
+# Rust
+/target/
+**/target/
+**/*.rs.bk
+Cargo.lock
+# (commit Cargo.lock once a binary exists — course C8)
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
