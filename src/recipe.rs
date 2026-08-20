@@ -1,5 +1,5 @@
 // recipe.rs
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Mode {
     Full,
     Letter(char),

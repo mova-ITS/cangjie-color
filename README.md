@@ -15,8 +15,8 @@ it does **not** invent Cangjie codes or unit splits.
 
 ## Status
 
-Lib + `cj-color` CLI: load samples, Mode views, MMAH→SVG Y flip at load, write `.svg`.
-Try [examples/zi-full.svg](examples/zi-full.svg) — command in [examples/README.md](examples/README.md).
+Lib + `cj-color` CLI: load samples, Mode views, MMAH→SVG Y flip, single + **batch** write.
+Try [examples/zi-full.svg](examples/zi-full.svg) — commands in [examples/README.md](examples/README.md).
 
 Full tutorial packs stay offline/private; only a small sample set ships in-repo.
 

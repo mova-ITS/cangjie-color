@@ -51,9 +51,9 @@ Teaching order in chat: **purpose → diagram → toolkit → workflow → code*
 ## NOW / NEXT
 
 ```text
-NOW:  commit browser SVG slice (path_flip + examples/zi-full)
-DONE: A–D · F1–F4 · CLI --mode · MMAH y'=900−y + xmlns/viewBox
-NEXT: typed errors · font source tag (later)
+NOW:  batch green — try --out-dir; commit when happy
+DONE: A–D · F1–F4 · CLI --mode · path_flip · batch (--out-dir / --chars / --chars-file)
+NEXT: typed errors · private full packs for cjtut (later)
 ```
 
 ---
