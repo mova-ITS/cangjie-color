@@ -21,6 +21,9 @@ data/
 # Learning course (local coach material — not portfolio)
 /docs/course/
 
+# Local Cursor agent brief (not public)
+/AGENTS.md
+
 # Rust
 /target/
 **/target/

@@ -1,6 +1,6 @@
 # cangjie-color — LEARN (Rust teaching spine)
 
-Companion to `AGENTS.md`. **This file locks how we build the Rust tool.**  
+Companion to this crate’s public docs (`README.md`). **This file locks how we build the Rust tool.**  
 Do not invent a parallel “mock-only” track unless the user reopens it.
 
 ---
