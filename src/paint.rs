@@ -13,22 +13,11 @@ pub fn teaching_aid_svg(recipe: &Recipe, paths: &[String], mode: Mode) -> String
 
 fn paint_grey_only(paths: &[String]) -> String {
     let fills: Vec<String> = vec!["#222222".to_string(); paths.len()];
-
-    let mut out = String::from("<svg>");
-    for (d, fill) in paths.iter().zip(fills.iter()) {
-        out.push_str("<path d='");
-        out.push_str(d);
-        out.push_str("' fill='");
-        out.push_str(fill);
-        out.push_str("'/>");
-    }
-    out.push_str("</svg>");
-    out
+    svg_from_fills(paths, &fills)
 }
 
 fn paint_unit(recipe: &Recipe, paths: &[String], i: usize) -> String {
     let mut fills: Vec<String> = vec!["#222222".to_string(); paths.len()];
-
     if let Some(sign) = recipe.signs.get(i) {
         for &idx in &sign.strokes {
             if let Some(slot) = fills.get_mut(idx) {
@@ -36,21 +25,11 @@ fn paint_unit(recipe: &Recipe, paths: &[String], i: usize) -> String {
             }
         }
     }
-    let mut out = String::from("<svg>");
-    for (d, fill) in paths.iter().zip(fills.iter()) {
-        out.push_str("<path d='");
-        out.push_str(d);
-        out.push_str("' fill='");
-        out.push_str(fill);
-        out.push_str("'/>");
-    }
-    out.push_str("</svg>");
-    out
+    svg_from_fills(paths, &fills)
 }
 
 fn paint_letter(recipe: &Recipe, paths: &[String], letter: char) -> String {
     let mut fills: Vec<String> = vec!["#222222".to_string(); paths.len()];
-
     if let Some(sign) = recipe.signs.iter().find(|s| s.letter == letter) {
         for &idx in &sign.strokes {
             if let Some(slot) = fills.get_mut(idx) {
@@ -58,16 +37,7 @@ fn paint_letter(recipe: &Recipe, paths: &[String], letter: char) -> String {
             }
         }
     }
-    let mut out = String::from("<svg>");
-    for (d, fill) in paths.iter().zip(fills.iter()) {
-        out.push_str("<path d='");
-        out.push_str(d);
-        out.push_str("' fill='");
-        out.push_str(fill);
-        out.push_str("'/>");
-    }
-    out.push_str("</svg>");
-    out
+    svg_from_fills(paths, &fills)
 }
 
 fn paint_full(recipe: &Recipe, paths: &[String]) -> String {
@@ -79,8 +49,14 @@ fn paint_full(recipe: &Recipe, paths: &[String]) -> String {
             }
         }
     }
+    svg_from_fills(paths, &fills)
+}
 
-    let mut out = String::from("<svg>");
+/// Paths are expected already in SVG Y-down space (flipped at load).
+fn svg_from_fills(paths: &[String], fills: &[String]) -> String {
+    let mut out = String::from(
+        r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">"#,
+    );
     for (d, fill) in paths.iter().zip(fills.iter()) {
         out.push_str("<path d='");
         out.push_str(d);

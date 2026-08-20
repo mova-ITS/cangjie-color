@@ -51,9 +51,9 @@ Teaching order in chat: **purpose → diagram → toolkit → workflow → code*
 ## NOW / NEXT
 
 ```text
-NOW:  pause/commit · or polish (svg_from_fills) · or typed errors
-DONE: A–D · F1 · F2 modes · F3 modules · F4 CLI · CLI --mode
-NEXT: typed errors · svg_from_fills · batch/lesson (later)
+NOW:  commit browser SVG slice (path_flip + examples/zi-full)
+DONE: A–D · F1–F4 · CLI --mode · MMAH y'=900−y + xmlns/viewBox
+NEXT: typed errors · font source tag (later)
 ```
 
 ---

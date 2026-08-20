@@ -2,6 +2,7 @@
 use std::collections::HashMap;
 use std::path::Path;
 
+use crate::path_flip::flip_mmah_path;
 use crate::recipe::{Recipe, Sign};
 
 pub fn load_graphics(path: &Path) -> Result<HashMap<char, Vec<String>>, String> {
@@ -24,10 +25,12 @@ pub fn load_graphics(path: &Path) -> Result<HashMap<char, Vec<String>>, String> 
             .as_array()
             .ok_or_else(|| format!("line {}: missing strokes", i + 1))?
             .iter()
-            .map(|s| {
-                s.as_str()
-                    .map(str::to_string)
-                    .ok_or_else(|| format!("line {}: stroke not a string", i + 1))
+            .enumerate()
+            .map(|(si, s)| {
+                let raw = s
+                    .as_str()
+                    .ok_or_else(|| format!("line {}: stroke {si} not a string", i + 1))?;
+                flip_mmah_path(raw).map_err(|e| format!("line {} stroke {si}: {e}", i + 1))
             })
             .collect::<Result<Vec<_>, _>>()?;
         map.insert(ch, strokes);

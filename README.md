@@ -15,9 +15,10 @@ it does **not** invent Cangjie codes or unit splits.
 
 ## Status
 
-Public scaffold. Sample fixtures and Rust API land as the crate is built. Full
-tutorial SVG packs are generated offline from private data; only a small sample
-set ships in-repo.
+Lib + `cj-color` CLI: load samples, Mode views, MMAH→SVG Y flip at load, write `.svg`.
+Try [examples/zi-full.svg](examples/zi-full.svg) — command in [examples/README.md](examples/README.md).
+
+Full tutorial packs stay offline/private; only a small sample set ships in-repo.
 
 ## Quick links
 

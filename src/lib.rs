@@ -17,6 +17,7 @@
 //! In-memory `mock_zi()` → `teaching_aid_svg` → SVG string. No files yet.
 mod load;
 mod paint;
+mod path_flip;
 mod recipe;
 
 pub use load::{load_graphics, load_recipes};
@@ -44,6 +45,22 @@ mod tests {
         let zi = recipes.get(&'子').expect("子 recipe").clone();
         let paths = graphics.get(&'子').expect("子 paths").clone();
         (zi, paths)
+    }
+
+    #[test]
+    fn teaching_aid_svg_is_browser_ready() {
+        let (zi, paths) = loaded_zi();
+        let svg = teaching_aid_svg(&zi, &paths, Mode::Full);
+        assert!(
+            svg.contains(r#"xmlns="http://www.w3.org/2000/svg""#),
+            "missing xmlns: {svg}"
+        );
+        assert!(
+            svg.contains(r#"viewBox="0 0 1024 1024""#),
+            "missing viewBox: {svg}"
+        );
+        assert!(!svg.contains("transform="), "no transform wanted: {svg}");
+        assert!(!svg.contains("1024 -1024"), "no negative viewBox: {svg}");
     }
 
     #[test]
