@@ -15,141 +15,18 @@
 //!
 //! # MVP slice (now)
 //! In-memory `mock_zi()` → `teaching_aid_svg` → SVG string. No files yet.
-use std::collections::HashMap;
-use std::path::Path;
+mod load;
+mod paint;
+mod recipe;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Sign {
-    pub letter: char,
-    pub color: String,
-    pub strokes: Vec<usize>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Recipe {
-    pub code: String,
-    pub signs: Vec<Sign>,
-}
-
-pub fn load_graphics(path: &Path) -> Result<HashMap<char, Vec<String>>, String> {
-    let text =
-        std::fs::read_to_string(path).map_err(|e| format!("read {}: {e}", path.display()))?;
-
-    let mut map = HashMap::new();
-    for (i, line) in text.lines().enumerate() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        let v: serde_json::Value =
-            serde_json::from_str(line).map_err(|e| format!("json line {}: {e}", i + 1))?;
-        let ch = v["character"]
-            .as_str()
-            .and_then(|s| s.chars().next())
-            .ok_or_else(|| format!("line {}: missing character", i + 1))?;
-        let strokes = v["strokes"]
-            .as_array()
-            .ok_or_else(|| format!("line {}: missing strokes", i + 1))?
-            .iter()
-            .map(|s| {
-                s.as_str()
-                    .map(str::to_string)
-                    .ok_or_else(|| format!("line {}: stroke not a string", i + 1))
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        map.insert(ch, strokes);
-    }
-    Ok(map)
-}
-
-pub fn load_recipes(path: &Path) -> Result<HashMap<char, Recipe>, String> {
-    let text =
-        std::fs::read_to_string(path).map_err(|e| format!("read {}: {e}", path.display()))?;
-
-    let mut map = HashMap::new();
-    for (i, line) in text.lines().enumerate() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        // JSON has 'char' and 'code'. We only need those for this test
-        let v: serde_json::Value =
-            serde_json::from_str(line).map_err(|e| format!("json line {}: {e}", i + 1))?;
-
-        let ch = v["char"]
-            .as_str()
-            .and_then(|s| s.chars().next())
-            .ok_or_else(|| format!("line {}: missing char", i + 1))?;
-
-        let code = v["code"]
-            .as_str()
-            .ok_or_else(|| format!("line {}: missing code", i + 1))?
-            .to_string();
-
-        let signs = v["signs"]
-            .as_array()
-            .ok_or_else(|| format!("line {}: missing signs", i + 1))?
-            .iter()
-            .enumerate()
-            .map(|(j, s)| {
-                let letter = s["letter"]
-                    .as_str()
-                    .and_then(|t| t.chars().next())
-                    .ok_or_else(|| format!("line {} sign {}: bad letter", i + 1, j))?;
-                let color = s["color"]
-                    .as_str()
-                    .ok_or_else(|| format!("line {} sign {}: bad color", i + 1, j))?
-                    .to_string();
-                let strokes = s["strokes"]
-                    .as_array()
-                    .ok_or_else(|| format!("line {} sign {}: bad strokes", i + 1, j))?
-                    .iter()
-                    .map(|n| {
-                        n.as_u64()
-                            .map(|u| u as usize)
-                            .ok_or_else(|| format!("line {} sign {}: bad stroke idx", i + 1, j))
-                    })
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Sign {
-                    letter,
-                    color,
-                    strokes,
-                })
-            })
-            .collect::<Result<Vec<_>, String>>()?;
-
-        map.insert(ch, Recipe { code, signs });
-    }
-    Ok(map)
-}
-
-pub fn teaching_aid_svg(recipe: &Recipe, paths: &[String]) -> String {
-    // Default ink, then overwrite from signs (same idea as the Python painter).
-    let mut fills: Vec<String> = vec!["#222222".to_string(); paths.len()];
-    for sign in &recipe.signs {
-        for &idx in &sign.strokes {
-            if let Some(slot) = fills.get_mut(idx) {
-                *slot = sign.color.clone();
-            }
-        }
-    }
-
-    let mut out = String::from("<svg>");
-    for (d, fill) in paths.iter().zip(fills.iter()) {
-        out.push_str("<path d='");
-        out.push_str(d);
-        out.push_str("' fill='");
-        out.push_str(fill);
-        out.push_str("'/>");
-    }
-    out.push_str("</svg>");
-    out
-}
+pub use load::{load_graphics, load_recipes};
+pub use paint::teaching_aid_svg;
+pub use recipe::{Mode, Recipe, Sign};
 
 #[cfg(test)]
 mod tests {
 
-    use super::{load_graphics, load_recipes, teaching_aid_svg, Recipe};
+    use super::{Mode, Recipe, load_graphics, load_recipes, teaching_aid_svg};
 
     use std::path::PathBuf;
 
@@ -170,21 +47,52 @@ mod tests {
     }
 
     #[test]
+    fn teaching_aid_grey_only_has_no_letter_colours() {
+        let (zi, paths) = loaded_zi();
+        let svg = teaching_aid_svg(&zi, &paths, Mode::GreyOnly);
+        assert!(!svg.contains("#1a9e3b"), "N green must be gone: {svg}");
+        assert!(!svg.contains("#e6194b"), "D red must be gone: {svg}");
+        assert!(svg.contains("#222222"), "dim fill missing: {svg}");
+    }
+
+    #[test]
+    fn teaching_aid_unit_0_keeps_green_not_red() {
+        let (zi, paths) = loaded_zi();
+        let svg = teaching_aid_svg(&zi, &paths, Mode::Unit(0));
+        assert!(svg.contains("#1a9e3b"), "unit0 N green missing: {svg}");
+        assert!(
+            !svg.contains("#e6194b"),
+            "unit1 D must not stay red in Unit(0): {svg}"
+        );
+    }
+
+    #[test]
+    fn teaching_aid_letter_n_keeps_green_not_red() {
+        let (zi, paths) = loaded_zi();
+        let svg = teaching_aid_svg(&zi, &paths, Mode::Letter('N'));
+        assert!(svg.contains("#1a9e3b"), "N green missing: {svg}");
+        assert!(
+            !svg.contains("#e6194b"),
+            "D must not stay red in Letter(N): {svg}"
+        );
+    }
+
+    #[test]
     fn teaching_aid_contains_svg_root() {
         let (zi, paths) = loaded_zi();
-        let svg = teaching_aid_svg(&zi, &paths);
+        let svg = teaching_aid_svg(&zi, &paths, Mode::Full);
         assert!(svg.contains("<svg"), "got {svg:?}");
     }
     #[test]
     fn teaching_aid_emits_one_path_per_stroke() {
         let (zi, paths) = loaded_zi();
-        let svg = teaching_aid_svg(&zi, &paths);
+        let svg = teaching_aid_svg(&zi, &paths, Mode::Full);
         assert_eq!(svg.matches("<path").count(), paths.len());
     }
     #[test]
     fn teaching_aid_uses_letter_colours() {
         let (zi, paths) = loaded_zi();
-        let svg = teaching_aid_svg(&zi, &paths);
+        let svg = teaching_aid_svg(&zi, &paths, Mode::Full);
         assert!(svg.contains("#1a9e3b"), "N green missing: {svg}");
         assert!(svg.contains("#e6194b"), "D red missing: {svg}");
     }
@@ -228,11 +136,61 @@ mod tests {
         let zi = recipes.get(&'子').expect("子 recipe");
         let paths = graphics.get(&'子').expect("子 paths");
 
-        let svg = teaching_aid_svg(zi, paths);
+        let svg = teaching_aid_svg(zi, paths, Mode::Full);
 
         assert!(svg.contains("<svg"), "got {svg:?}");
         assert_eq!(svg.matches("<path").count(), paths.len());
         assert!(svg.contains("#1a9e3b"), "N green missing: {svg}");
         assert!(svg.contains("#e6194b"), "D red missing: {svg}");
+    }
+
+    #[test]
+    fn load_recipes_missing_file_is_err() {
+        let path =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("testdata/recipes/does-not-exist.jsonl");
+        let err = load_recipes(&path).expect_err("missing file must Err");
+        assert!(
+            err.contains("read")
+                || err.contains("No such")
+                || err.contains("not found")
+                || path.to_string_lossy().contains("does-not-exist")
+                || err.contains("does-not-exist"),
+            "error should mention read/path failure, got: {err}"
+        );
+    }
+
+    #[test]
+    fn load_recipes_bad_json_line_is_err() {
+        let dir = std::env::temp_dir();
+        let path = dir.join("cangjie-color-bad-recipes.jsonl");
+        std::fs::write(&path, "{not valid json\n").expect("write temp");
+
+        let err = load_recipes(&path).expect_err("bad JSON must Err");
+        assert!(
+            err.contains("json") || err.contains("line"),
+            "error should mention json/line, got: {err}"
+        );
+    }
+
+    #[test]
+    fn load_graphics_missing_file_is_err() {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("testdata/graphics/does-not-exist.jsonl");
+        let err = load_graphics(&path).expect_err("missing file must Err");
+        assert!(
+            err.contains("read")
+                || err.contains("No such")
+                || err.contains("not found")
+                || err.contains("does-not-exist"),
+            "got: {err}"
+        );
+    }
+
+    #[test]
+    fn load_graphics_bad_json_line_is_err() {
+        let path = std::env::temp_dir().join("cangjie-color-bad-graphics.jsonl");
+        std::fs::write(&path, "{not valid json\n").expect("write temp");
+        let err = load_graphics(&path).expect_err("bad JSON must Err");
+        assert!(err.contains("json") || err.contains("line"), "got: {err}");
     }
 }

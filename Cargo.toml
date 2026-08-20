@@ -9,6 +9,10 @@ keywords = ["cangjie", "cjk", "svg", "education"]
 categories = ["text-processing", "visualization"]
 readme = "README.md"
 
+[[bin]]
+name = "cj-color"
+path = "src/main.rs"
+
 [dependencies]
 serde = {version = "1", features = ["derive"]}
 serde_json = "1"

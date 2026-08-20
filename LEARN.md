@@ -51,9 +51,9 @@ Teaching order in chat: **purpose → diagram → toolkit → workflow → code*
 ## NOW / NEXT
 
 ```text
-NOW:  phase F (errors · modes · modules · CLI — pick with user)
-DONE: A · B · C · D (computed SVG from loaded models)
-NEXT: F1 errors, or F4 CLI write .svg, or tidy modules
+NOW:  pause/commit · or F2 polish (svg_from_fills) · or CLI --mode
+DONE: A–D · F1 · F2 modes (Full/Letter/Unit/GreyOnly) · F3 modules · F4 CLI
+NEXT: CLI --mode flag · typed errors · batch/lesson (later)
 ```
 
 ---
