@@ -11,6 +11,33 @@ fn fixture(rel: &str) -> PathBuf {
 }
 
 #[test]
+fn cli_letter_n_omits_d_red() {
+    let out = std::env::temp_dir().join("cangjie-color-cli-zi-letter-n.svg");
+    let _ = std::fs::remove_file(&out);
+
+    let status = Command::new(bin())
+        .args([
+            "--recipes",
+            fixture("testdata/recipes/sample.jsonl").to_str().unwrap(),
+            "--graphics",
+            fixture("testdata/graphics/sample.jsonl").to_str().unwrap(),
+            "--char",
+            "子",
+            "--mode",
+            "letter:N",
+            "-o",
+            out.to_str().unwrap(),
+        ])
+        .status()
+        .expect("spawn cj-color");
+
+    assert!(status.success(), "exit {status}");
+    let svg = std::fs::read_to_string(&out).expect("read svg");
+    assert!(svg.contains("#1a9e3b"), "N green missing: {svg}");
+    assert!(!svg.contains("#e6194b"), "D must not stay red: {svg}");
+}
+
+#[test]
 fn cli_writes_zi_svg() {
     let out = std::env::temp_dir().join("cangjie-color-cli-zi.svg");
     let _ = std::fs::remove_file(&out);
