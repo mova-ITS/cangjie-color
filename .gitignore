@@ -33,3 +33,8 @@ Cargo.lock
 .idea/
 .vscode/
 *.swp
+
+
+# Added by cargo
+
+/target
